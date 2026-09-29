@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Simulador abierto de conversión analógica-digital y digital-analógica">
+<title>Laboratorio AD/DA — Simulador de señales</title>
+<style>
+:root{--ink:#17212b;--muted:#52616d;--paper:#f5f7fa;--panel:#fff;--line:#d9e1e8;--blue:#075985;--cyan:#0e7490;--orange:#b45309;--green:#166534;--red:#b91c1c;--soft:#eaf5fb}*{box-sizing:border-box}body{margin:0;font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--paper)}header{background:linear-gradient(120deg,#073b5c,#0e7490);color:#fff;padding:2.8rem max(1.25rem,calc((100% - 1100px)/2));}header h1{margin:0;font-size:clamp(1.8rem,4vw,2.7rem)}header p{max-width:760px;margin:.6rem 0 0;font-size:1.12rem}main{max-width:1100px;margin:0 auto;padding:1.25rem}section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:1.3rem;margin:1.25rem 0;box-shadow:0 1px 3px #0000000c}h2{color:var(--blue);margin-top:0}h3{margin-bottom:.35rem;color:#174e70}.lead{font-size:1.08rem}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}.card{padding:1rem;background:#f8fbfd;border-left:4px solid var(--cyan);border-radius:5px}.card h3{margin-top:0}.controls{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;background:var(--soft);padding:1rem;border-radius:8px;margin:1rem 0}label{display:block;font-weight:650}input[type=range],select{width:100%;margin-top:.3rem}output{font-weight:700;color:var(--blue)}.help{font-size:.9rem;color:var(--muted)}button{font:inherit;background:var(--blue);color:#fff;border:0;border-radius:6px;padding:.6rem 1rem;cursor:pointer}button:hover{background:#06496c}.plots{display:grid;grid-template-columns:1fr 1fr;gap:1rem}.plot{border:1px solid var(--line);border-radius:8px;padding:.7rem;min-width:0}.plot h3{font-size:1rem;text-align:center;margin:.1rem 0 .5rem}svg{width:100%;height:auto;display:block;background:#fcfdff;border:1px solid #edf1f4}.legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.9rem;margin-top:.5rem}.key{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:.3rem}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-top:1rem}.metric{background:#f8fbfd;padding:.7rem;border-radius:7px;text-align:center}.metric strong{display:block;font-size:1.25rem;color:var(--blue)}table{border-collapse:collapse;width:100%;margin-top:.8rem}th,td{text-align:left;padding:.55rem;border-bottom:1px solid var(--line)}th{color:var(--blue)}code{background:#eef2f5;padding:.1em .3em;border-radius:3px}.callout{border-left:4px solid var(--orange);background:#fff8eb;padding:.8rem 1rem}.success{border-left-color:var(--green);background:#effaf1}footer{padding:1rem;text-align:center;color:var(--muted);font-size:.9rem}@media(max-width:720px){.grid,.controls,.plots{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}header{padding:2rem 1.25rem}section{padding:1rem}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Laboratorio de conversión AD y DA</h1>
+  <p>Explora por separado el convertidor analógico-digital (ADC/CAD), el digital-analógico (DAC/CDA) o el proceso completo. Diseñado para empezar desde cero.</p>
+</header>
+<main>
+<section>
+  <h2>Antes de empezar: la idea esencial</h2>
+  <p class="lead">Una señal <strong>analógica</strong> puede tomar cualquier valor dentro de un intervalo, como la tensión que entrega un micrófono. Un sistema digital solo puede manejar números; por ello, el convertidor <strong>analógico-digital (ADC o CAD)</strong> mide la señal en instantes concretos y redondea cada medida a uno de un número limitado de niveles. El convertidor <strong>digital-analógico (DAC o CDA)</strong> realiza el camino inverso: convierte los números en niveles de tensión.</p>
+  <div class="grid">
+    <div class="card"><h3>1. Muestreo</h3><p>Se observa la amplitud de la señal cada cierto tiempo. La frecuencia de muestreo debe ser al menos el doble de la frecuencia máxima de la señal: <strong>f<sub>s</sub> ≥ 2·f<sub>max</sub></strong>.</p></div>
+    <div class="card"><h3>2. Cuantificación</h3><p>Cada muestra se aproxima al nivel disponible más cercano. Con <strong>N bits</strong> hay <strong>2<sup>N</sup></strong> niveles. Más bits implican una aproximación más fina.</p></div>
+    <div class="card"><h3>3. Codificación y reconstrucción</h3><p>El nivel elegido se expresa en binario. El DAC recupera ese nivel; un filtro suaviza los escalones para aproximar de nuevo la señal original.</p></div>
+  </div>
+</section>
+
+<section id="lab">
+  <h2>Simulador interactivo</h2>
+  <p id="labIntro">Elige una conversión para concentrarte en ella o selecciona el recorrido completo. Modifica los controles y observa cada etapa.</p>
+  <div class="controls" style="grid-template-columns:1fr">
+    <div><label for="mode">Conversión que deseas estudiar</label><select id="mode"><option value="adc">Conversión analógica → digital (ADC/CAD)</option><option value="dac">Conversión digital → analógica (DAC/CDA)</option><option value="both">Recorrido completo: ADC + DAC</option></select><div class="help">El modo seleccionado cambia el gráfico, la tabla y la explicación de esta práctica.</div></div>
+  </div>
+  <div class="controls">
+    <div><label for="freq">Frecuencia de la señal: <output id="freqOut">2 Hz</output></label><input id="freq" type="range" min="1" max="12" value="2"><div class="help">Cuántos ciclos por segundo tiene la señal.</div></div>
+    <div><label for="fs">Frecuencia de muestreo: <output id="fsOut">24 Hz</output></label><input id="fs" type="range" min="4" max="80" step="1" value="24"><div class="help">Muestras que toma el ADC cada segundo.</div></div>
+    <div><label for="bits">Resolución: <output id="bitsOut">3 bits (8 niveles)</output></label><input id="bits" type="range" min="2" max="8" value="3"><div class="help">Cantidad de niveles que puede distinguir el ADC.</div></div>
+  </div>
+  <div class="plots" id="plots">
+    <div class="plot" id="adcPanel"><h3>ADC: señal analógica, muestras y códigos</h3><svg id="adcPlot" viewBox="0 0 520 300" role="img" aria-label="Señal original, niveles de cuantificación y muestras"><g id="adcDraw"></g></svg><div class="legend"><span><i class="key" style="background:#075985"></i>Señal original</span><span><i class="key" style="background:#b45309"></i>Muestras cuantificadas</span></div></div>
+    <div class="plot" id="dacPanel"><h3>DAC: códigos y salida analógica</h3><svg id="dacPlot" viewBox="0 0 520 300" role="img" aria-label="Reconstrucción escalonada de la señal"><g id="dacDraw"></g></svg><div class="legend"><span><i class="key" style="background:#0e7490"></i>Salida escalonada del DAC</span><span><i class="key" style="background:#075985"></i>Referencia original</span></div></div>
+  </div>
+  <div class="metrics" aria-live="polite">
+    <div class="metric"><span>Niveles</span><strong id="mLevels">8</strong></div>
+    <div class="metric"><span>Relación f<sub>s</sub>/f</span><strong id="mRatio">12,0</strong></div>
+    <div class="metric"><span>Error máx. teórico</span><strong id="mError">±0,125</strong></div>
+    <div class="metric"><span>Estado</span><strong id="mStatus">Correcto</strong></div>
+  </div>
+  <div class="table-responsive"><table><thead><tr><th>Muestra</th><th>Instante</th><th>Valor analógico</th><th>Nivel decimal</th><th>Código binario</th><th>Valor del DAC</th></tr></thead><tbody id="sampleTable"></tbody></table></div>
+  <div id="conversionDetail" class="callout" aria-live="polite"></div>
+</section>
+
+<section>
+  <h2>Explicación detallada de cada conversión</h2>
+  <div class="grid">
+    <div><h3>ADC / CAD: de una señal a datos</h3><p><strong>Entrada:</strong> una tensión continua, por ejemplo la salida de un micrófono. Primero, el circuito toma muestras cada <em>T<sub>s</sub> = 1/f<sub>s</sub></em> segundos. Después compara cada medida con sus niveles disponibles y escoge el más cercano: es la cuantificación. Finalmente expresa el número de nivel con N ceros y unos. Por ejemplo, con 3 bits, el nivel decimal 5 se transmite o almacena como <code>101</code>.</p><p>La información que se pierde al redondear es el <strong>error de cuantificación</strong>. Si se muestrea demasiado despacio, la señal puede aparentar otra frecuencia: aliasing. Antes de un ADC real suele colocarse un filtro antialias.</p></div>
+    <div><h3>DAC / CDA: de datos a una tensión</h3><p><strong>Entrada:</strong> una palabra binaria, por ejemplo <code>101</code>. El DAC interpreta ese código como un nivel decimal (5) y genera la tensión que corresponde a dicho nivel. Cada vez que llega un código nuevo, conserva la tensión anterior hasta el siguiente: por eso la salida tiene forma de escalera.</p><p>Un filtro de reconstrucción, normalmente pasa-bajo, atenúa los escalones y las componentes de alta frecuencia para obtener una forma suave. El DAC no recupera detalles que el ADC no midió ni puede eliminar el error de cuantificación de los códigos de entrada.</p></div>
+    <div><h3>Cómo estudiarlas por separado</h3><p>En modo <strong>ADC</strong>, centra la atención en los puntos naranjas y en el código binario de la tabla: son el resultado digital. En modo <strong>DAC</strong>, toma esos mismos códigos como entrada y observa los escalones verdes que crea el conversor. En el modo <strong>completo</strong>, compara ambos para entender la cadena entera.</p><p>Recuerda: la frecuencia de muestreo es una decisión del ADC; los bits fijan los niveles utilizados tanto por ADC como por DAC.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>Cómo interpretar lo que ves</h2>
+  <ol>
+    <li>Empieza con <strong>2 Hz, 24 Hz y 3 bits</strong>. Verás muchas muestras por ciclo y ocho niveles de amplitud.</li>
+    <li>Baja la frecuencia de muestreo. Cuando <code>f<sub>s</sub> &lt; 2·f</code>, no se cumple Nyquist: las muestras ya no describen correctamente la forma de la señal. Esto se llama <strong>aliasing</strong>.</li>
+    <li>Conserva una frecuencia de muestreo alta y baja los bits. Los escalones son más grandes y crece el <strong>error de cuantificación</strong>.</li>
+    <li>Consulta la tabla: cada fila enseña una medida analógica, el nivel entero elegido y su representación binaria. Esa secuencia de códigos es la información digital.</li>
+  </ol>
+  <div class="callout success"><strong>Reto breve:</strong> encuentra la menor frecuencia de muestreo que permite representar una señal de 8 Hz sin incumplir Nyquist. Después compara 2 bits y 8 bits manteniendo esa frecuencia.</div>
+</section>
+
+<section>
+  <h2>Conceptos y ejemplos de aplicación</h2>
+  <div class="grid">
+    <div><h3>ADC / CAD</h3><p>Está en la entrada de audio de un móvil, en sensores de temperatura o luz, y en equipos de medida. Convierte una tensión física en datos que un procesador puede almacenar o transmitir.</p></div>
+    <div><h3>DAC / CDA</h3><p>Está en altavoces, auriculares, sintetizadores y salidas de control. Convierte datos numéricos en una tensión que puede actuar sobre un dispositivo real.</p></div>
+    <div><h3>Decisiones de diseño</h3><p>Una frecuencia de muestreo mayor capta cambios más rápidos; más bits reducen el ruido de cuantificación. Ambos aumentan la cantidad de datos a procesar o transmitir.</p></div>
+  </div>
+  <p class="callout"><strong>Idea clave:</strong> la frecuencia de muestreo determina <em>cuándo</em> medimos; el número de bits determina <em>con qué precisión</em> medimos la amplitud. Son dos ajustes distintos.</p>
+</section>
+
+<section>
+  <h2>Uso y publicación</h2>
+  <p>Guarda este archivo y súbelo directamente al aula virtual como recurso o archivo descargable. Se ejecuta en cualquier navegador moderno, sin conexión, registro ni instalación. El código está incluido en el propio archivo y puede modificarse libremente para uso educativo.</p>
+  <p><strong>Licencia:</strong> MIT. Puedes copiar, adaptar y compartir el material conservando el aviso de licencia.</p>
+</section>
+</main>
+<footer>Laboratorio AD/DA · Material educativo de código abierto · Licencia MIT</footer>
+<script>
+const $=id=>document.getElementById(id), W=520,H=300,L=44,R=12,T=18,B=36;
+const freq=$("freq"),fs=$("fs"),bits=$("bits"),mode=$("mode");
+function path(points){return points.map((p,i)=>(i?'L':'M')+p[0].toFixed(2)+' '+p[1].toFixed(2)).join(' ')}
+function y(v){return T+(1-v)/2*(H-T-B)} function x(t){return L+t*(W-L-R)}
+function axes(levels){let s='';for(let i=0;i<=4;i++){let yy=T+i*(H-T-B)/4,v=(1-i/2).toFixed(1);s+=`<line x1="${L}" y1="${yy}" x2="${W-R}" y2="${yy}" stroke="#d9e1e8"/><text x="4" y="${yy+4}" font-size="11" fill="#52616d">${v}</text>`}for(let i=0;i<=4;i++){let xx=L+i*(W-L-R)/4;s+=`<text x="${xx-5}" y="${H-12}" font-size="11" fill="#52616d">${(i/4).toFixed(2)}</text>`} for(let i=0;i<=levels;i++){let v=-1+2*i/levels;s+=`<line x1="${L}" y1="${y(v)}" x2="${W-R}" y2="${y(v)}" stroke="#b45309" opacity=".15"/>`}return s}
+function draw(){let f=+freq.value, sr=+fs.value, b=+bits.value,levels=2**b, n=Math.max(2,Math.round(sr)), selected=mode.value;let original=[];for(let i=0;i<=500;i++){let t=i/500, v=.88*Math.sin(2*Math.PI*f*t);original.push([x(t),y(v)])}let samples=[];for(let i=0;i<=n;i++){let t=i/n, raw=.88*Math.sin(2*Math.PI*f*t), q=Math.round((raw+1)/2*(levels-1)), v=q/(levels-1)*2-1;samples.push({t,raw,q,v})}let dots=samples.map(a=>`<circle cx="${x(a.t)}" cy="${y(a.v)}" r="3.2" fill="#b45309"><title>t=${a.t.toFixed(3)} s; código ${a.q.toString(2).padStart(b,'0')}</title></circle>`).join('');$("adcDraw").innerHTML=axes(levels)+`<path d="${path(original)}" fill="none" stroke="#075985" stroke-width="2.4"/>`+dots;let step=[];samples.forEach((a,i)=>{if(i===0)step.push([x(a.t),y(a.v)]);else{step.push([x(a.t),y(samples[i-1].v)]);step.push([x(a.t),y(a.v)])}});$("dacDraw").innerHTML=axes(0)+`<path d="${path(original)}" fill="none" stroke="#075985" stroke-width="1.5" opacity=".55"/><path d="${path(step)}" fill="none" stroke="#0e7490" stroke-width="2.6"/>`;$("adcPanel").style.display=selected==='dac'?'none':'';$("dacPanel").style.display=selected==='adc'?'none':'';$("plots").style.gridTemplateColumns=selected==='both'?'1fr 1fr':'1fr';
+$("freqOut").textContent=f+' Hz';$("fsOut").textContent=sr+' Hz';$("bitsOut").textContent=`${b} bits (${levels} niveles)`;$("mLevels").textContent=levels;let ratio=sr/f;$("mRatio").textContent=ratio.toFixed(1).replace('.',',');$("mError").textContent='±'+(1/(levels-1)).toFixed(3).replace('.',',');let valid=ratio>=2;$("mStatus").textContent=valid?'Correcto':'¡Alias!';$("mStatus").style.color=valid?'#166534':'#b91c1c';let visible=samples.slice(0,Math.min(samples.length,12));$("sampleTable").innerHTML=visible.map((a,i)=>`<tr><td>${i}</td><td>${a.t.toFixed(3)} s</td><td>${a.raw.toFixed(3)}</td><td>${a.q}</td><td><code>${a.q.toString(2).padStart(b,'0')}</code></td><td>${a.v.toFixed(3)}</td></tr>`).join('')+(samples.length>12?`<tr><td colspan="6" class="help">Se muestran las primeras 12 de ${samples.length} muestras.</td></tr>`:'');let info=selected==='adc'?`<strong>Modo ADC/CAD.</strong> Lee el gráfico de izquierda a derecha: la curva azul es la tensión de entrada; los puntos naranjas son las medidas tomadas por el muestreador; cada punto se redondea a uno de los ${levels} niveles y se transforma en su código binario. Prueba a disminuir f<sub>s</sub>: si baja de 2·f, las muestras dejan de ser suficientes.`:selected==='dac'?`<strong>Modo DAC/CDA.</strong> Considera los códigos binarios de la tabla como la entrada del convertidor. Cada código ordena un nivel de tensión; el DAC mantiene ese nivel hasta recibir el siguiente, creando la escalera verde. Más bits generan escalones menores. Un filtro pasabajo suavizaría la salida.`:`<strong>Modo completo ADC + DAC.</strong> El ADC toma la curva azul y produce los números de la tabla. El DAC interpreta esos mismos números y produce la escalera verde. La diferencia respecto de la curva original combina el redondeo de cuantificación y la reconstrucción escalonada.`;$("conversionDetail").innerHTML=info;$("labIntro").textContent=selected==='adc'?'Estás estudiando el ADC: de una tensión continua a códigos binarios.':' '+(selected==='dac'?'Estás estudiando el DAC: de códigos binarios a una tensión analógica.':'Compara la señal, su codificación digital y su reconstrucción en una cadena completa.');}
+[freq,fs,bits].forEach(e=>e.addEventListener('input',draw));mode.addEventListener('change',draw);draw();
+</script>
+</body></html>
